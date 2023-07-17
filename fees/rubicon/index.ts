@@ -26,21 +26,34 @@ const graphs = (graphUrls: ChainEndpoints) => {
                 }
             }`;
 
-            const graphResTotalFees = await request(graphUrls[chain], graphQueryTotalFees);
-            const graphResDailyFees = await request(graphUrls[chain], graphQueryDailyFees);
+            let graphResTotalFees; 
+            let totalFees;
+            try {
+                graphResTotalFees = await request(graphUrls[chain], graphQueryTotalFees);
+                totalFees = graphResTotalFees.rubicons[0]?.total_maker_rebate_volume_usd
+                    ? parseFloat(graphResTotalFees.rubicons[0].total_maker_rebate_volume_usd)
+                    : 0;
+            }
+            catch (error) {
+                totalFees = 0;
+            }
 
-            const totalFees = graphResTotalFees.rubicons[0]?.total_maker_rebate_volume_usd
-                ? parseFloat(graphResTotalFees.rubicons[0].total_maker_rebate_volume_usd)
-                : 0;
-
-            const dailyFee = graphResDailyFees.dayMakerRebateVolume?.rebate_volume_usd
-                ? parseFloat(graphResDailyFees.dayMakerRebateVolume.rebate_volume_usd)
-                : 0;
+            let graphResDailyFees; 
+            let dailyFees;
+            try {
+                graphResDailyFees = await request(graphUrls[chain], graphQueryDailyFees);
+                dailyFees = graphResDailyFees.dayMakerRebateVolume?.rebate_volume_usd
+                    ? parseFloat(graphResDailyFees.dayMakerRebateVolume.rebate_volume_usd)
+                    : 0;
+            }
+            catch (error) {
+                dailyFees = 0;
+            }
 
             return {
                 timestamp,
                 totalFees: totalFees.toString(),
-                dailyFees: dailyFee.toString(),
+                dailyFees: dailyFees.toString(),
             };
         };
     };
